@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-from ModelMethods import generate
+from api.ModelMethods import generate
 
 
 st.set_page_config(page_title="DEMO", page_icon="👋", layout="wide")
@@ -27,7 +27,7 @@ def main():
 
     st.header(appTitle)
     left_column, right_column = st.columns(2)
-    correctedText= None
+    correctedText = None
 
     with left_column:
         model_options = {"mT5", "mBART", "VartaT5"}
@@ -41,11 +41,7 @@ def main():
         selected_example_text = examples[selected_example_key]
 
         # Get user input
-        user_input = st.text_area(
-            "Enter a Nepali Sentence: ",
-            selected_example_text,
-            max_chars=512,  # Set the maximum input length to 512 characters
-        )
+        user_input = st.text_area("Enter a Nepali Sentence: ", selected_example_text)
         if st.button("Check Spelling"):
             if user_input:
                 correctedText = generate(selected_model, user_input)
@@ -58,7 +54,7 @@ def main():
         if correctedText is not None:
             st.write("Corrected Text:")
             # st.write([f"{line['score']:.2f}: {line['sequence']}" for line in correctedText])
-            df = pd.DataFrame(correctedText, columns=["score","sequence"])
+            df = pd.DataFrame(correctedText, columns=["score", "sequence"])
             st.table(df)
 
 
