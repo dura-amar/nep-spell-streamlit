@@ -1,5 +1,5 @@
 # import HappyTextToText from Happy Transformer
-from happytransformer import HappyTextToText, TTSettings
+# from happytransformer import HappyTextToText, TTSettings
 
 # Huggingface Transformers
 from transformers import (
@@ -11,6 +11,8 @@ from transformers import (
     T5TokenizerFast,
     GenerationConfig,
 )
+from api.ioprocess import processInputAndResults, check_and_insert_space
+
 
 import torch
 import re
@@ -21,7 +23,7 @@ import re
     Add path to the models here
 """
 mt5ModelPath = "C:/Users/hp/Desktop/spell/hf-space/streamlit-nep-spell/models/nep-spell-hft-23epochs"
-mbartModelPath = "../models/happytt_mBART_plus_10"
+mbartModelPath = "C:/Users/hp/Desktop/spell/hf-space/streamlit-nep-spell/models/happytt_mBART_plus_10"
 vartat5ModelPath = "C:/Users/hp/Desktop/spell/hf-space/streamlit-nep-spell/models/vartat5-using-100K-plus-12"
 
 
@@ -45,16 +47,48 @@ vartat5ModelPath = "C:/Users/hp/Desktop/spell/hf-space/streamlit-nep-spell/model
 
 def generate(model, input):
 
-    if model == "mT5":
-        return mt5Inference(input)
-    elif model == "mBART":
-        return mbartInference(input)
-    elif model == "VartaT5":
-        return vartat5Inference(input)
-    else:
-        return f"Model: {model} not available"
+    in_sentences = inputSentenceList(input)
+    out_sentences = processSentenceList(model, in_sentences)
+
+    # TODO: add span for each before joining
+    result = []
+    for i, o in zip(in_sentences, out_sentences):
+        result.append(processInputAndResults(i, o))
+    return " ".join(result)
 
     # काकाले काकिलाइ माया गर्नू हुन्छ।
+
+
+def inputSentenceList(input):
+    # Define a regex pattern to split sentences
+    # We'll split on periods, question marks, and exclamation marks
+    sentence_pattern = r"(?<=[।?!\n])\s+"
+    # Split the Nepali text into sentences
+    sentences = re.split(sentence_pattern, input)
+    for i, s in enumerate(sentences):
+        sentences[i] = check_and_insert_space(s)
+    return sentences
+
+
+"""
+    For working with paragraph processing
+"""
+
+
+def processSentenceList(model, inputSentenceList):
+    out_sentence = []
+    for s in inputSentenceList:
+        if(len(s)>2):
+            if model == "mT5":
+                out_s = mt5Inference(s)
+            elif model == "mBART":
+                out_s = mbartInference(s)
+            elif model == "VartaT5":
+                out_s = vartat5Inference(s)
+            else:
+                return f"Model: {model} not available"
+            out_sentence.append(out_s[0]["sequence"])
+    return out_sentence
 
 
 """
@@ -140,29 +174,3 @@ def postProcessOutput(sequences, sequences_scores):
             filtered_outputs.append({"sequence": sequence, "score": score.item()})
 
     return filtered_outputs
-
-
-"""
-    For working with paragraph processing
-"""
-
-
-def split_nepali_paragraph_into_sentences(nepali_text):
-
-    # Define a regex pattern to split sentences
-    # We'll split on periods, question marks, and exclamation marks
-    sentence_pattern = r"(?<=[।?!\n])\s+"
-
-    # Split the Nepali text into sentences
-    sentences = re.split(sentence_pattern, nepali_text)
-
-    return sentences
-
-
-def process_paragraph(model, paragraph):
-    sentenceList = split_nepali_paragraph_into_sentences(paragraph)
-    out_sentence = []
-    for s in sentenceList:
-        out_sentence.append(generate(model, s))
-    nepali_paragraph = " ".join(out_sentence)
-    return nepali_paragraph

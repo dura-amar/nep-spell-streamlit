@@ -77,5 +77,4 @@ def check_and_insert_space(sentence):
     index = sentence.find("।")  # Find the index of "।"
     if index > 0 and sentence[index - 1] != " ":
         sentence = sentence[:index] + " " + sentence[index:]  # Insert space before "।"
-
     return sentence
