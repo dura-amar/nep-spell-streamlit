@@ -20,9 +20,9 @@ import re
     Some global variables
     Add path to the models here
 """
-mt5ModelPath = "../models/nep-spell-hft-23epochs"
+mt5ModelPath = "C:/Users/hp/Desktop/spell/hf-space/streamlit-nep-spell/models/nep-spell-hft-23epochs"
 mbartModelPath = "../models/happytt_mBART_plus_10"
-vartat5ModelPath = "../models/vartat5-using-100K-plus-1"
+vartat5ModelPath = "C:/Users/hp/Desktop/spell/hf-space/streamlit-nep-spell/models/vartat5-using-100K-plus-12"
 
 
 """
@@ -57,10 +57,11 @@ def generate(model, input):
     # काकाले काकिलाइ माया गर्नू हुन्छ।
 
 
-
 """
     Below are the 3 different models for inference
 """
+
+
 def mt5Inference(input):
     print("Processing mt5")
 
@@ -76,7 +77,7 @@ def mt5Inference(input):
         output_scores=True,
     )
     sequences = tokenizer.batch_decode(outputs.sequences, skip_special_tokens=True)
-    return postProcessOutput(sequences,outputs["sequences_scores"])
+    return postProcessOutput(sequences, outputs["sequences_scores"])
 
 
 def mbartInference(input):
@@ -115,13 +116,13 @@ def vartat5Inference(input):
         output_scores=True,
     )
     sequences = tokenizer.batch_decode(outputs["sequences"], skip_special_tokens=True)
-    return postProcessOutput(sequences,outputs["sequences_scores"])
-
+    return postProcessOutput(sequences, outputs["sequences_scores"])
 
 
 """
     Post processing the model output
 """
+
 
 def postProcessOutput(sequences, sequences_scores):
     probabilities = torch.exp(sequences_scores)
@@ -144,6 +145,7 @@ def postProcessOutput(sequences, sequences_scores):
 """
     For working with paragraph processing
 """
+
 
 def split_nepali_paragraph_into_sentences(nepali_text):
 

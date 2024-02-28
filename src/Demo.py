@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 
+from api.ioprocess import processInputAndResults, check_and_insert_space
 from api.ModelMethods import generate
 
 
@@ -40,11 +41,18 @@ def main():
         # Display the selected example text in a text area
         selected_example_text = examples[selected_example_key]
 
+        # Paragraph selection 
+
         # Get user input
         user_input = st.text_area("Enter a Nepali Sentence: ", selected_example_text)
         if st.button("Check Spelling"):
             if user_input:
+                
+
+                user_input = check_and_insert_space(user_input)
                 correctedText = generate(selected_model, user_input)
+                # correctedText = {0: "मेरो देस नेपाल हो।", 1: "मेरो देश नेपाल हो।"}
+                correctedText = correctedText[0]["sequence"]
                 # # Perfrom grammer correction
                 # st.subheader("Corrected Text:")
                 # st.write([f"{line['score']:.2f}: {line['sequence']}"for line in correctedText])
@@ -52,10 +60,24 @@ def main():
                 st.warning("Please enter some text to check.")
     with right_column:
         if correctedText is not None:
-            st.write("Corrected Text:")
+
             # st.write([f"{line['score']:.2f}: {line['sequence']}" for line in correctedText])
-            df = pd.DataFrame(correctedText, columns=["score", "sequence"])
-            st.table(df)
+
+            # df = pd.DataFrame(correctedText, columns=["score", "sequence"])
+
+            # Analyze the input and output
+            correctedText = check_and_insert_space(correctedText)
+            result = processInputAndResults(user_input, correctedText)
+            if "span" in result:
+                st.write("Corrected Text:")
+            else:
+                st.write("No errors found:")
+            st.write(
+                result,
+                unsafe_allow_html=True,
+            )
+
+            # st.table(df)
 
 
 if __name__ == "__main__":
