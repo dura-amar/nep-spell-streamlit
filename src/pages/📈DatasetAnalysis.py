@@ -8,7 +8,7 @@ from matplotlib.font_manager import FontProperties
 st.set_page_config(page_title="Datasets Analysis", page_icon="👋", layout="wide")
 
 
-data100k = "../datafiles/nep_spell_100k.csv"
+data100k = "datafiles/nep_spell_100k.csv"
 
 # Preparing datafrmae
 df = pd.read_csv(data100k)
@@ -55,14 +55,60 @@ word_freq = Counter(words)
 
 # Consider the top 1000 most common words
 top_words = word_freq.most_common(1000)
+# Define the font file path
+font1 = "fonts/TiroDevanagariHindi-Regular.ttf"
+###################################
+# Stop words
+# Get the top 50 most frequent words
+top_50_most_common = word_freq.most_common(25)
 
+# Get the top 50 least frequent words
+top_50_least_common = word_freq.most_common()[-25:]
+
+# Extract words and their frequencies from the top 50 most frequent and least frequent lists
+most_common_words, most_common_freqs = zip(*top_50_most_common)
+least_common_words, least_common_freqs = zip(*top_50_least_common)
+
+
+st.subheader("25 Most Frequent Words")
+# Plot the histogram
+plt.figure(figsize=(12, 6))
+# Specify font properties
+font_prop = FontProperties(fname=font1)
+plt.barh(range(25), most_common_freqs, color="skyblue", label="Least Frequent")
+plt.yticks(range(25), most_common_words, fontproperties=font_prop)
+plt.gca().invert_yaxis()
+plt.xlabel("Frequency")
+plt.ylabel("Words")
+plt.title("25 Most Frequent Words")
+plt.legend()
+plt.tight_layout()
+st.pyplot(plt)
+
+st.write("---")
+
+st.subheader("25 Least Frequent Words")
+# Plot the histogram
+plt.figure(figsize=(12, 6))
+# Specify font properties
+font_prop = FontProperties(fname=font1)
+plt.barh(range(25), least_common_freqs, color="salmon", label="Least Frequent")
+plt.yticks(range(25), least_common_words, fontproperties=font_prop)
+plt.gca().invert_yaxis()
+plt.xlabel("Frequency")
+plt.ylabel("Words")
+plt.title("25 Least Frequent Words")
+plt.legend()
+plt.tight_layout()
+st.pyplot(plt)
+st.write("---")
+
+# WORD CLOUD
 # Generate the corpus for word cloud
 corpus = {}
 for word, frequency in top_words:
     corpus[word] = frequency
 
-# Define the font file path
-font1 = "../fonts/TiroDevanagariHindi-Regular.ttf"
 
 # Generate the word cloud
 wordcloud_most_common = WordCloud(
@@ -525,7 +571,7 @@ error_percentages = [28.5, 28.45, 40.1, 2.95]
 
 # Create horizontal bar graph
 plt.figure(figsize=(10, 6))
-plt.barh(error_types, error_percentages)
+plt.barh(error_types, error_percentages, color="black")
 
 # Add labels and title
 plt.xlabel("Error Percentage")
@@ -533,7 +579,7 @@ plt.ylabel("Error Type")
 plt.title("Error Types Distribution")
 
 # Save the image
-# plt.savefig("error_type_distribution.png", dpi=300, bbox_inches="tight")
+plt.savefig("error_type_distribution.png", dpi=300, bbox_inches="tight")
 
 # Show plot
 st.subheader("Distribution of Error Types")

@@ -1,6 +1,3 @@
-# import HappyTextToText from Happy Transformer
-# from happytransformer import HappyTextToText, TTSettings
-
 # Huggingface Transformers
 from transformers import (
     MT5ForConditionalGeneration,
@@ -9,11 +6,13 @@ from transformers import (
     MBartTokenizer,
     T5ForConditionalGeneration,
     T5TokenizerFast,
-    GenerationConfig,
+    # GenerationConfig,
 )
-from api.ioprocess import processInputAndResults, check_and_insert_space
-
-
+from api.ioprocess import (
+    processInputAndResults,
+    check_and_insert_space,
+    processPunctuation,
+)
 import torch
 import re
 
@@ -23,9 +22,9 @@ import re
     Add path to the models here
 """
 mt5ModelPath = "C:/Users/hp/Desktop/spell/hf-space/streamlit-nep-spell/models/nep-spell-hft-23epochs"
-mbartModelPath = "C:/Users/hp/Desktop/spell/hf-space/streamlit-nep-spell/models/happytt_mBART_plus_10"
+mbartModelPath = "C:/Users/hp/Desktop/spell/hf-space/streamlit-nep-spell/models/happytt_mBART_plus_11_v2"
+# mbartModelPath = "C:/Users/hp/Desktop/spell/hf-space/streamlit-nep-spell/models/happytt_mBART_plus_10"
 vartat5ModelPath = "C:/Users/hp/Desktop/spell/hf-space/streamlit-nep-spell/models/vartat5-using-100K-plus-12"
-
 
 """
     Function: generate
@@ -47,16 +46,45 @@ vartat5ModelPath = "C:/Users/hp/Desktop/spell/hf-space/streamlit-nep-spell/model
 
 def generate(model, input):
 
-    in_sentences = inputSentenceList(input)
-    out_sentences = processSentenceList(model, in_sentences)
+    # Trying to process whole paragraph with the model.
+    return process_paragraph(model, input)
 
-    # TODO: add span for each before joining
-    result = []
-    for i, o in zip(in_sentences, out_sentences):
-        result.append(processInputAndResults(i, o))
-    return " ".join(result)
+    # in_sentences = inputSentenceList(input)
+    # out_sentences = processSentenceList(model, in_sentences)
 
-    # काकाले काकिलाइ माया गर्नू हुन्छ।
+    # # TODO: add span for each before joining
+    # result = []
+    # for i, o in zip(in_sentences, out_sentences):
+    #     result.append(processInputAndResults(i, o))
+    # return " ".join(result)
+
+
+"""
+    Setting to process a paragraph as single input
+"""
+
+
+def process_paragraph(model, input):
+    # Put some spaces around the punctuations
+    inputParagraph = processPunctuation(input)
+    if len(inputParagraph) > 2:
+        if model == "mT5":
+            outputParagraph = mt5Inference(inputParagraph)
+        elif model == "mBART":
+            outputParagraph = mbartInference(inputParagraph)
+        elif model == "VartaT5":
+            outputParagraph = vartat5Inference(inputParagraph)
+        else:
+            return f"Model: {model} not available"
+        return processInputAndResults(inputParagraph, outputParagraph[0]["sequence"])
+
+    else:
+        return f"{input} is not a valid input."
+
+
+"""
+    Setting to process a paragraph as a list of sentences
+"""
 
 
 def inputSentenceList(input):
@@ -78,7 +106,7 @@ def inputSentenceList(input):
 def processSentenceList(model, inputSentenceList):
     out_sentence = []
     for s in inputSentenceList:
-        if(len(s)>2):
+        if len(s) > 2:
             if model == "mT5":
                 out_s = mt5Inference(s)
             elif model == "mBART":

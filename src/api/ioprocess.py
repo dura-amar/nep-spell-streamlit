@@ -1,5 +1,5 @@
 import json
-
+import re
 
 def diff(str1, str2):
     indices = []
@@ -78,3 +78,16 @@ def check_and_insert_space(sentence):
     if index > 0 and sentence[index - 1] != " ":
         sentence = sentence[:index] + " " + sentence[index:]  # Insert space before "।"
     return sentence
+
+def processPunctuation(sentence):
+    # Define a regex pattern to match punctuation marks
+    punctuation_pattern = r'([।,\.!\?:;"\'\(\)])'
+    
+    # Use re.sub() to replace punctuation marks with themselves surrounded by spaces
+    # The pattern matches any punctuation mark and replaces it with " <punctuation_mark> "
+    modified_sentence = re.sub(punctuation_pattern, r' \1 ', sentence)
+    
+    # Replace any occurrences of double spaces with single spaces
+    modified_sentence = re.sub(r'\s+', ' ', modified_sentence)
+    
+    return modified_sentence
